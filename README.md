@@ -10,7 +10,7 @@ The default project, just creates console.
 
 - Versions are just cursed on 2.4.2 and below (this is due to them using "Next", "Live", and "Cert") (but they do work).
 - Missing s16-s18 patterns.
-- Function function broke.
+- Function function broke on c2 because we need to loop through children.
 
 # TODO
 

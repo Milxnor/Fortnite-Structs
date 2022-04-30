@@ -484,7 +484,7 @@ auto GetMembersAsObjects(UObject* Object)
 		Members = GetMembers<UClass_CT, FProperty, UObject>(Object);
 
 	else if (Engine_Version >= 500)
-		Members = GetMembers<UClass_CT, UProperty_FTO, UObject>(Object);
+		Members = GetMembers<UClass_CT, FProperty, UObject>(Object);
 
 	return Members;
 }
@@ -502,9 +502,7 @@ std::vector<std::string> GetMemberNames(UObject* Object)
 
 UFunction* FindFunction(const std::string& Name, UObject* Object) // might as well pass in object because what else u gon use a func for.
 {
-	std::vector<UObject*> Members = GetMembersAsObjects(Object);
-
-	for (auto Member : Members)
+	for (auto Member : GetMembersAsObjects(Object))
 	{
 		if (Member->GetName() == Name) // dont use IsA cuz slower
 			return (UFunction*)Member;
@@ -545,9 +543,9 @@ static int GetOffset(UObject* Object, const std::string& MemberName)
 
 		else if (Engine_Version >= 425 && Engine_Version < 500)
 			return LoopMembersAndFindOffset<UClass_CT, FProperty>(Object, MemberName);
-
+		
 		else if (Engine_Version >= 500)
-			return LoopMembersAndFindOffset<UClass_CT, UProperty_FTO>(Object, MemberName);
+			return LoopMembersAndFindOffset<UClass_CT, FProperty>(Object, MemberName, 0x44);
 	}
 
 	else
@@ -729,16 +727,14 @@ bool Setup(/* void* ProcessEventHookAddr */)
 			ObjectsAddr = FindPattern(_("48 8B 05 ? ? ? ? 48 8B 0C C8 48 8B 04 D1"), true, 3);
 	}
 
-	auto FN_VersionDouble = std::stod(FN_Version);
-
-	if (FN_VersionDouble >= 16.00 && FN_VersionDouble < 18.40) // 4.26.1
+	if (Engine_Version >= 426) // 4.26.1
 	{
+		ToStringAddr = FindPattern(_("48 89 5C 24 ? 48 89 74 24 ? 55 57 41 56 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 45 33 F6 48 8B F2 44 39 71 04 0F 85 ? ? ? ? 8B 19 0F B7 FB E8 ? ? ? ? 8B CB 48 8D 54 24 ? 48 C1 E9 10 8D 1C 3F 48 03 5C C8 ? 48 8B CB F6 03 01 0F 85 ? ? ? ? E8 ? ? ? ?"));
 		ObjectsAddr = FindPattern(_("48 8B 05 ? ? ? ? 48 8B 0C C8 48 8B 04 D1"), true, 3);
 	}
 
 	if (Engine_Version >= 500)
 	{
-		ObjectsAddr = FindPattern(_("48 8B 05 ? ? ? ? 48 8B 0C C8 48 8B 04 D1"), true, 3);
 		ToStringAddr = FindPattern(_("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 84 24 ? ? ? ? 8B"));
 		ProcessEventAddr = FindPattern(_("40 55 56 57 41 54 41 55 41 56 41 57 48 81 EC ? ? ? ? 48 8D 6C 24 ? 48 89 9D ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C5 48 89 85 ? ? ? ? 45 33 ED"));
 		FreeMemoryAddr = FindPattern(_("48 85 C9 0F 84 ? ? ? ? 48 89 5C 24 ? 57 48 83 EC 20 48 8B 3D ? ? ? ? 48 8B D9 48"));
@@ -759,6 +755,14 @@ bool Setup(/* void* ProcessEventHookAddr */)
 	}
 
 	ProcessEventO = decltype(ProcessEventO)(ProcessEventAddr);
+
+	if (!FreeMemoryAddr)
+	{
+		MessageBoxA(NULL, _("Failed to find FMemory::Free"), _("Fortnite"), MB_OK);
+		return false;
+	}
+
+	FMemory::Free = decltype(FMemory::Free)(FreeMemoryAddr);
 
 	if (!ObjectsAddr)
 	{

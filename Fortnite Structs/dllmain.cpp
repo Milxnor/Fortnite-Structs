@@ -4,6 +4,41 @@
 #include "structs.h"
 #include "xorstr.hpp"
 
+DWORD WINAPI CreateConsole(LPVOID)
+{
+    auto Engine = FindObject(_("FortEngine_"));
+
+    while (!Engine) // we have to take in account for FEngineLoop
+    {
+        Engine = FindObject(_("FortEngine_"));
+        Sleep(1000 / 30);
+    }
+
+    static auto ConsoleClass = FindObject(_("Class /Script/Engine.Console"));
+    static auto GameViewport = Engine->Member<UObject*>(_("GameViewport"));
+    UObject** ViewportConsole = (*GameViewport)->Member<UObject*>(_("ViewportConsole"));
+
+    struct {
+        UObject* ObjectClass;
+        UObject* Outer;
+        UObject* ReturnValue;
+    } params{};
+
+    params.ObjectClass = ConsoleClass;
+    params.Outer = *GameViewport;
+
+    static auto GSC = FindObject(_("GameplayStatics /Script/Engine.Default__GameplayStatics"));
+    static auto fn = FindObject(_("Function /Script/Engine.GameplayStatics.SpawnObject")); // GSC->Function(_("SpawnObject"));
+
+    GSC->ProcessEvent(fn, &params);
+
+    *ViewportConsole = params.ReturnValue;
+
+    std::cout << _("Console created!\n");
+
+    return 0;
+}
+
 DWORD WINAPI Main(LPVOID) // Example code
 {
     AllocConsole();
@@ -17,19 +52,11 @@ DWORD WINAPI Main(LPVOID) // Example code
         return 0;
     }
 
+    std::cout << _("Fortnite Version: ") << FN_Version << '\n';
+
     auto Engine = FindObject(_("FortEngine_"));
 
-    if (Engine)
-    {
-        std::cout << "Engine: " << Engine->GetFullName() << '\n';
-        // std::cout << "GameInstance: " << (*Engine->Member<UObject*>(_("GameInstance")))->GetFullName() << '\n';;
-    }
-	
-    else
-	{
-		std::cout << _("Failed to find Engine!\n");
-		return 0;
-	}
+    CreateThread(0, 0, CreateConsole, 0, 0, 0);
 
     return 0;
 }

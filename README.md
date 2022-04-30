@@ -1,4 +1,4 @@
-# Fortnte-StructsS
+# Fortnte-Structs
 
 I know I have the worst project names.<br>
 This code is kinda very messy, but it works.<br>

@@ -671,7 +671,7 @@ bool Setup(/* void* ProcessEventHookAddr */)
 
 	std::string FullVersion;
 	FString toFree;
-
+	
 	if (!GetEngineVersion)
 	{
 		auto VerStr = FindPattern(_("2B 2B 46 6F 72 74 6E 69 74 65 2B 52 65 6C 65 61 73 65 2D ? ? ? ?"));
@@ -729,7 +729,7 @@ bool Setup(/* void* ProcessEventHookAddr */)
 	else
 	{
 		Engine_Version = 419;
-		FN_Version = 2.69;
+		FN_Version = _("2.69");
 	}
 	
 	if (Engine_Version >= 416 && Engine_Version <= 420)
@@ -818,7 +818,7 @@ bool Setup(/* void* ProcessEventHookAddr */)
 	FMemory::Free = decltype(FMemory::Free)(FreeMemoryAddr);
 
 	toFree.FreeString();
-
+	
 	if (!ToStringAddr)
 	{
 		MessageBoxA(0, _("Failed to find FName::ToString"), _("Fortnite"), MB_OK);

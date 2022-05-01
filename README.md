@@ -9,4 +9,5 @@ The default project, just creates console.
 # KNOWN BUGS
 
 - Versions are just cursed on 2.4.2 and below (this is due to them using "Next", "Live", and "Cert") (but they do work).
+- Starting like s18 or something idk thre is no getengineversion or the pattern is invalid and the engine version is scuffed this is probably easy to fix.
 - Missing s16-s18 patterns.

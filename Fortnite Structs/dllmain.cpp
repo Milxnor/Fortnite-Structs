@@ -6,6 +6,8 @@
 
 DWORD WINAPI CreateConsole(LPVOID)
 {
+    auto t = new Timer;
+
     auto Engine = FindObject(_("FortEngine_"));
 
     while (!Engine) // we have to take in account for FEngineLoop
@@ -28,11 +30,14 @@ DWORD WINAPI CreateConsole(LPVOID)
     params.Outer = *GameViewport;
 
     static auto GSC = FindObject(_("GameplayStatics /Script/Engine.Default__GameplayStatics"));
-    static auto fn = FindObject(_("Function /Script/Engine.GameplayStatics.SpawnObject")); // GSC->Function(_("SpawnObject"));
+    static auto fn = GSC->Function(_("SpawnObject"));
+	// static auto fn = FindObject(_("Function /Script/Engine.GameplayStatics.SpawnObject"));
 
     GSC->ProcessEvent(fn, &params);
 
     *ViewportConsole = params.ReturnValue;
+
+    delete t;
 
     std::cout << _("Console created!\n");
 
@@ -55,6 +60,8 @@ DWORD WINAPI Main(LPVOID) // Example code
     std::cout << _("Fortnite Version: ") << FN_Version << '\n';
 
     auto Engine = FindObject(_("FortEngine_"));
+
+    std::cout << "World:" << (*(*FindObject(_("FortEngine_"))->Member<UObject*>(_("GameViewport")))->Member<UObject*>(_("World")))->GetFullName() << '\n';
 
     CreateThread(0, 0, CreateConsole, 0, 0, 0);
 

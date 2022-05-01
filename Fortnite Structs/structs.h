@@ -467,7 +467,65 @@ auto GetMembers(UObject* Object)
 	return Members;
 }
 
-auto GetMembersAsObjects(UObject* Object)
+template <typename ClassType, typename PropertyType, typename ReturnValue = PropertyType>
+auto GetMembersFProperty(UObject* Object, bool bOnlyMembers = false, bool bOnlyFunctions = false)
+{
+	std::vector<ReturnValue*> Members;
+
+	if (Object)
+	{
+		for (auto CurrentClass = (ClassType*)Object->ClassPrivate; CurrentClass; CurrentClass = (ClassType*)CurrentClass->SuperStruct)
+		{
+			auto Property = CurrentClass->ChildProperties;
+			auto Child = CurrentClass->Children;
+
+			if ((!bOnlyFunctions && bOnlyMembers) || (!bOnlyFunctions && !bOnlyMembers))
+			{
+				if (Property)
+				{
+					Members.push_back((ReturnValue*)Property);
+
+					auto Next = Property->Next;
+
+					if (Next)
+					{
+						while (Property)
+						{
+							Members.push_back((ReturnValue*)Property);
+
+							Property = Property->Next;
+						}
+					}
+				}
+			}
+
+			if ((!bOnlyMembers && bOnlyFunctions) || (!bOnlyMembers && !bOnlyFunctions))
+			{
+				if (Child)
+				{
+					Members.push_back((ReturnValue*)Child);
+
+					auto Next = Child->Next;
+
+					if (Next)
+					{
+						while (Child)
+						{
+							Members.push_back((ReturnValue*)Child);
+
+							Child = decltype(Child)(Child->Next);
+						}
+					}
+				}
+			}
+
+		}
+	}
+
+	return Members;
+}
+
+auto GetMembersAsObjects(UObject* Object, bool bOnlyMembers = false, bool bOnlyFunctions = false)
 {
 	std::vector<UObject*> Members;
 
@@ -481,18 +539,18 @@ auto GetMembersAsObjects(UObject* Object)
 		Members = GetMembers<UClass_FTT, UProperty_FTO, UObject>(Object);
 
 	else if (Engine_Version >= 425 && Engine_Version < 500)
-		Members = GetMembers<UClass_CT, FProperty, UObject>(Object);
+		Members = GetMembersFProperty<UClass_CT, FProperty, UObject>(Object, bOnlyMembers, bOnlyFunctions);
 
 	else if (Engine_Version >= 500)
-		Members = GetMembers<UClass_CT, FProperty, UObject>(Object);
+		Members = GetMembersFProperty<UClass_CT, FProperty, UObject>(Object, bOnlyMembers, bOnlyFunctions);
 
 	return Members;
 }
 
-std::vector<std::string> GetMemberNames(UObject* Object)
+std::vector<std::string> GetMemberNames(UObject* Object, bool bOnlyMembers = false, bool bOnlyFunctions = false)
 {
 	std::vector<std::string> Names;
-	std::vector<UObject*> Members = GetMembersAsObjects(Object);
+	std::vector<UObject*> Members = GetMembersAsObjects(Object, bOnlyMembers, bOnlyFunctions);
 
 	for (auto Member : Members)
 		Names.push_back(Member->GetName());
@@ -502,7 +560,7 @@ std::vector<std::string> GetMemberNames(UObject* Object)
 
 UFunction* FindFunction(const std::string& Name, UObject* Object) // might as well pass in object because what else u gon use a func for.
 {
-	for (auto Member : GetMembersAsObjects(Object))
+	for (auto Member : GetMembersAsObjects(Object, false, true))
 	{
 		if (Member->GetName() == Name) // dont use IsA cuz slower
 			return (UFunction*)Member;

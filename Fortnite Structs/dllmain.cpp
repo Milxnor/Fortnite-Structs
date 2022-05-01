@@ -6,7 +6,7 @@
 
 DWORD WINAPI CreateConsole(LPVOID)
 {
-    auto t = new Timer;
+    // auto t = new Timer;
 
     auto Engine = FindObject(_("FortEngine_"));
 
@@ -37,7 +37,7 @@ DWORD WINAPI CreateConsole(LPVOID)
 
     *ViewportConsole = params.ReturnValue;
 
-    delete t;
+    // delete t;
 
     std::cout << _("Console created!\n");
 
@@ -50,7 +50,7 @@ DWORD WINAPI Main(LPVOID) // Example code
 
     FILE* file;
     freopen_s(&file, _("CONOUT$"), _("w"), stdout);
-
+	
     if (!Setup())
     {
         std::cout << _("Failed Setup!\n");
@@ -58,10 +58,6 @@ DWORD WINAPI Main(LPVOID) // Example code
     }
 
     std::cout << _("Fortnite Version: ") << FN_Version << '\n';
-
-    auto Engine = FindObject(_("FortEngine_"));
-
-    std::cout << "World:" << (*(*FindObject(_("FortEngine_"))->Member<UObject*>(_("GameViewport")))->Member<UObject*>(_("World")))->GetFullName() << '\n';
 
     CreateThread(0, 0, CreateConsole, 0, 0, 0);
 

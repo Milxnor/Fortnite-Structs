@@ -601,11 +601,10 @@ static int GetOffset(UObject* Object, const std::string& MemberName)
 
 		else if (Engine_Version >= 425 && Engine_Version < 500)
 			return LoopMembersAndFindOffset<UClass_CT, FProperty>(Object, MemberName);
-		
-		else if (Engine_Version >= 500)
+
+		else if (std::stod(FN_Version) >= 19)
 			return LoopMembersAndFindOffset<UClass_CT, FProperty>(Object, MemberName, 0x44);
 	}
-
 	else
 	{
 		std::cout << std::format(_("Either invalid object or MemberName. MemberName {} Object {}"), MemberName, Object->GetFullName());
@@ -698,7 +697,7 @@ bool Setup(/* void* ProcessEventHookAddr */)
 
 	if (!FullVersion.contains(_("Live")) && !FullVersion.contains(_("Next")) && !FullVersion.contains(_("Cert")))
 	{
-		if (Engine_Version < 500)
+		if (GetEngineVersion)
 		{
 			FNVer.erase(0, FNVer.find_last_of(_("-"), FNVer.length() - 1) + 1);
 			EngineVer.erase(EngineVer.find_first_of(_("-"), FNVer.length() - 1), 40);
@@ -721,8 +720,10 @@ bool Setup(/* void* ProcessEventHookAddr */)
 
 		FN_Version = FNVer;
 
-		// if (FN_Version >= 16.00 && FN_Version < 18.40)
-			// Engine_Version = 4.27; // 4.26.1;
+		auto FnVerDouble = std::stod(FN_Version);
+
+		if (FnVerDouble >= 16.00 && FnVerDouble < 18.40)
+			Engine_Version = 427; // 4.26.1;
 	}
 
 	else
@@ -775,7 +776,9 @@ bool Setup(/* void* ProcessEventHookAddr */)
 		ProcessEventAddr = FindPattern(_("40 55 56 57 41 54 41 55 41 56 41 57 48 81 EC ? ? ? ? 48 8D 6C 24 ? 48 89 9D ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C5 48 89 85 ? ? ? ? 8B 41 0C 45 33 F6"));
 	}
 
-	if (Engine_Version >= 421 && Engine_Version <= 426)
+	auto FnVerDouble = std::stod(FN_Version);
+	
+	if (FnVerDouble >= 5)
 	{
 		ObjectsAddr = FindPattern(_("48 8B 05 ? ? ? ? 48 8B 0C C8 48 8D 04 D1 EB 03 48 8B ? 81 48 08 ? ? ? 40 49"), false, 7, true);
 		FreeMemoryAddr = FindPattern(_("48 85 C9 74 2E 53 48 83 EC 20 48 8B D9"));
@@ -785,24 +788,40 @@ bool Setup(/* void* ProcessEventHookAddr */)
 			ObjectsAddr = FindPattern(_("48 8B 05 ? ? ? ? 48 8B 0C C8 48 8B 04 D1"), true, 3);
 	}
 
-	auto FnVerDouble = std::stod(FN_Version);
-
 	if (FnVerDouble >= 16.00) // 4.26.1
 	{
-		ToStringAddr = FindPattern(_("48 89 5C 24 ? 48 89 74 24 ? 55 57 41 56 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 45 33 F6 48 8B F2 44 39 71 04 0F 85 ? ? ? ? 8B 19 0F B7 FB E8 ? ? ? ? 8B CB 48 8D 54 24 ? 48 C1 E9 10 8D 1C 3F 48 03 5C C8 ? 48 8B CB F6 03 01 0F 85 ? ? ? ? E8 ? ? ? ?"));
-		ObjectsAddr = FindPattern(_("48 8B 05 ? ? ? ? 48 8B 0C C8 48 8B 04 D1"), true, 3);
+		FreeMemoryAddr = FindPattern(_("48 85 C9 0F 84 ? ? ? ? 48 89 5C 24 ? 57 48 83 EC 20 48 8B 3D ? ? ? ? 48 8B D9 48"));
+
+		if (FnVerDouble < 19.00)
+		{
+			ToStringAddr = FindPattern(_("48 89 5C 24 ? 56 57 41 56 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 84 24 ? ? ? ? 8B 19 48 8B F2 0F B7 FB 4C 8B F1 E8 ? ? ? ? 44 8B C3 8D 1C 3F 49 C1 E8 10 33 FF 4A 03 5C C0 ? 41 8B 46 04"));
+			ProcessEventAddr = FindPattern(_("40 55 53 56 57 41 54 41 56 41 57 48 81 EC"));
+			
+			if (!ToStringAddr)
+				ToStringAddr = FindPattern(_("48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 56 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 84 24 ? ? ? ? 8B 19 33 ED 0F B7 01 48 8B FA C1 EB 10 4C"));
+		}
 	}
 
-	if (Engine_Version >= 500)
+	// if (Engine_Version >= 500)
+	if (FnVerDouble >= 19.00)
 	{
 		ToStringAddr = FindPattern(_("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 84 24 ? ? ? ? 8B"));
 		ProcessEventAddr = FindPattern(_("40 55 56 57 41 54 41 55 41 56 41 57 48 81 EC ? ? ? ? 48 8D 6C 24 ? 48 89 9D ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C5 48 89 85 ? ? ? ? 45 33 ED"));
-		FreeMemoryAddr = FindPattern(_("48 85 C9 0F 84 ? ? ? ? 48 89 5C 24 ? 57 48 83 EC 20 48 8B 3D ? ? ? ? 48 8B D9 48"));
 	}
+
+	if (!FreeMemoryAddr)
+	{
+		MessageBoxA(0, _("Failed to find FMemory::Free"), _("Fortnite"), MB_OK);
+		return false;
+	}
+
+	FMemory::Free = decltype(FMemory::Free)(FreeMemoryAddr);
+
+	toFree.FreeString();
 
 	if (!ToStringAddr)
 	{
-		MessageBoxA(NULL, _("Failed to find FName::ToString"), _("Fortnite"), MB_OK);
+		MessageBoxA(0, _("Failed to find FName::ToString"), _("Fortnite"), MB_OK);
 		return false;
 	}
 
@@ -810,23 +829,15 @@ bool Setup(/* void* ProcessEventHookAddr */)
 	
 	if (!ProcessEventAddr)
 	{
-		MessageBoxA(NULL, _("Failed to find UObject::ProcessEvent"), _("Fortnite"), MB_OK);
+		MessageBoxA(0, _("Failed to find UObject::ProcessEvent"), _("Fortnite"), MB_OK);
 		return false;
 	}
 
 	ProcessEventO = decltype(ProcessEventO)(ProcessEventAddr);
 
-	if (!FreeMemoryAddr)
-	{
-		MessageBoxA(NULL, _("Failed to find FMemory::Free"), _("Fortnite"), MB_OK);
-		return false;
-	}
-
-	FMemory::Free = decltype(FMemory::Free)(FreeMemoryAddr);
-
 	if (!ObjectsAddr)
 	{
-		MessageBoxA(NULL, _("Failed to find FUObjectArray::ObjObjects"), _("Fortnite"), MB_OK);
+		MessageBoxA(0, _("Failed to find FUObjectArray::ObjObjects"), _("Fortnite"), MB_OK);
 		return false;
 	}
 
@@ -834,6 +845,4 @@ bool Setup(/* void* ProcessEventHookAddr */)
 		OldObjects = decltype(OldObjects)(ObjectsAddr);
 	else
 		ObjObjects = decltype(ObjObjects)(ObjectsAddr);
-
-	toFree.FreeString();
 }

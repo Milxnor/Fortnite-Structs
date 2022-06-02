@@ -92,6 +92,7 @@
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="finder.h" />
     <ClInclude Include="other.h" />
     <ClInclude Include="structs.h" />
     <ClInclude Include="xorstr.hpp" />

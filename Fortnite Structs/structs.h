@@ -105,6 +105,8 @@ public:
 	{
 
 	}
+
+	INL auto GetData() const { return Data; }
 };
 
 class FString // https://github.com/EpicGames/UnrealEngine/blob/4.21/Engine/Source/Runtime/Core/Public/Containers/UnrealString.h#L59

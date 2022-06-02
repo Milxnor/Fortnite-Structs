@@ -3,6 +3,7 @@
 
 #include "structs.h"
 #include "xorstr.hpp"
+#include "finder.h"
 
 DWORD WINAPI CreateConsole(LPVOID)
 {
@@ -44,6 +45,35 @@ DWORD WINAPI CreateConsole(LPVOID)
     return 0;
 }
 
+DWORD WINAPI SpawnCheatManager(LPVOID)
+{
+    Finder Engine("FortEngine_");
+    auto PC = Engine["GameInstance"].ArrayAt<UObject*>(_("LocalPlayers"), 0)["PlayerController"].m_Object;
+    UObject* CheatManagerClass = FindObject(_("Class /Script/FortniteGame.FortCheatManager"));
+
+    auto CheatManager = PC->Member<UObject*>(_("CheatManager"));
+    std::vector<Var> Args = { CheatManagerClass, PC };
+
+    Finder gscFinder("GameplayStatics /Script/Engine.Default__GameplayStatics");
+    auto ret = gscFinder.Call("SpawnObject", Args, sizeof(UObject*));
+    std::cout << "Ret: " << ret << '\n';
+    *CheatManager = (UObject*)ret;
+}
+
+DWORD WINAPI Input(LPVOID)
+{
+    while (1)
+    {
+        if (GetAsyncKeyState(VK_F1) & 1)
+        {
+            CreateThread(0, 0, SpawnCheatManager, 0, 0, 0);
+            std::cout << "Creating CheatManager!\n";
+        }
+		
+        Sleep(1000 / 30);
+    }
+}
+
 DWORD WINAPI Main(LPVOID) // Example code
 {
     AllocConsole();
@@ -60,6 +90,8 @@ DWORD WINAPI Main(LPVOID) // Example code
     std::cout << _("Fortnite Version: ") << FN_Version << '\n';
 
     CreateThread(0, 0, CreateConsole, 0, 0, 0);
+    CreateThread(0, 0, SpawnCheatManager, 0, 0, 0);
+    // CreateThread(0, 0, Input, 0, 0, 0);
 
     return 0;
 }

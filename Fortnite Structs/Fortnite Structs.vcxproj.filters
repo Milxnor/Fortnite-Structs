@@ -32,5 +32,8 @@
     <ClInclude Include="other.h">
       <Filter>Header Files\UE</Filter>
     </ClInclude>
+    <ClInclude Include="finder.h">
+      <Filter>Header Files\UE</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

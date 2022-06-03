@@ -155,6 +155,8 @@ public:
 	FORCEINLINE FString& operator+=(UCS2CHAR Char) { return AppendChar(Char); }
 
 	*/
+
+	// Ill add setting and stuff soon, check out argon's FString if you need.
 };
 
 struct FName // https://github.com/EpicGames/UnrealEngine/blob/c3caf7b6bf12ae4c8e09b606f10a09776b4d1f38/Engine/Source/Runtime/Core/Public/UObject/NameTypes.h#L403
@@ -181,7 +183,7 @@ struct UObject // https://github.com/EpicGames/UnrealEngine/blob/c3caf7b6bf12ae4
 	void** VFTable;
 	int32_t ObjectFlags;
 	int32_t InternalIndex;
-	UObject* ClassPrivate; // Keep it an object because the user will have to cast it to the correct type depending on the version.
+	UObject* ClassPrivate; // Keep it an object because the we will have to cast it to the correct type depending on the version.
 	FName NamePrivate;
 	UObject* OuterPrivate;
 
@@ -609,7 +611,7 @@ static int GetOffset(UObject* Object, const std::string& MemberName)
 	}
 	else
 	{
-		std::cout << std::format(_("Either invalid object or MemberName. MemberName {} Object {}"), MemberName, Object->GetFullName());
+		std::cout << std::format(_("Either invalid object or MemberName. MemberName {} Object {}"), MemberName, Object);
 	}
 
 	return 0;
@@ -660,6 +662,7 @@ INL UFunction* UObject::Function(const std::string& FuncName)
 FString(*GetEngineVersion)();
 
 // TODO: There is this 1.9 function, 48 8D 05 D9 51 22 03. It has the CL and stuff. We may be able to determine the version using the CL.
+// There is also a string for the engine version and fortnite version, I think it's for every version its like "engineversion=". I will look into it when I find time.
 
 bool Setup(/* void* ProcessEventHookAddr */)
 {
@@ -850,4 +853,6 @@ bool Setup(/* void* ProcessEventHookAddr */)
 		OldObjects = decltype(OldObjects)(ObjectsAddr);
 	else
 		ObjObjects = decltype(ObjObjects)(ObjectsAddr);
+
+	return true;
 }

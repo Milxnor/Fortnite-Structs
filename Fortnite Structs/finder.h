@@ -63,10 +63,11 @@ void SetAll(const std::vector<Var>& Vars, void* block, size_t Addition = 0) // i
 	}
 }
 
-struct Finder
+class Finder // I need to fix up this struct
 {
+private:
 	UObject* m_Object = nullptr;
-	// bool bSucceededLastOperation = false;
+public:
 
 	Finder(const std::string& BaseObject) : m_Object(FindObject(BaseObject)) {}
 	
@@ -78,8 +79,21 @@ struct Finder
 		return *this;
 	}
 
+	bool isValid() const { return m_Object != nullptr; }
+
+	UObject* GetObj() const { return m_Object; }
+
+	template <typename Type>
+	UObject** GetMember(const std::string& Member)
+	{
+		if (!isValid())
+			return nullptr;
+
+		return m_Object->Member<Type>(Member);
+	}
+
 	template<typename ArrayType>
-	Finder& ArrayAt(const std::string& ChildArray, int element) // since we are unable to set m_Object to anything but a object, we have to use a workaround
+	Finder& ArrayAt(const std::string& ChildArray, int element) // since we are unable to set m_Object to anything but a UObject, we have to make a seperate function for arrays
 	{
 		auto Array = m_Object->Member<TArray<ArrayType>>(ChildArray);
 

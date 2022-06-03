@@ -57,7 +57,7 @@ DWORD WINAPI SpawnCheatManager(LPVOID)
     Finder gscFinder("GameplayStatics /Script/Engine.Default__GameplayStatics");
     auto ret = gscFinder.Call("SpawnObject", Args, sizeof(UObject*));
     std::cout << "Ret: " << ret << '\n';
-    *CheatManager = (UObject*)ret;
+    // *CheatManager = (UObject*)ret;
 }
 
 DWORD WINAPI Input(LPVOID)

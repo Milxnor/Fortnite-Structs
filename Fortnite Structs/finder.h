@@ -13,6 +13,18 @@ struct Var // is this memory efficent? no, i do not care though.
 	Var(int Val) : val(Val) {}
 
 	Var() {}
+	
+	int GetUsedVariable() const
+	{
+		if (ptr)
+			return 2;
+		else if (val)
+			return 0;
+		else if (str.Data.GetData())
+			return 1;
+
+		return -1;
+	}
 };
 
 template <typename Type>
@@ -26,27 +38,27 @@ void Set(Type Value, void* Block, size_t Addition)
 	}
 }
 
-void SetAll(const std::vector<Var>& Vars, void* block, size_t Addition = 0)
+void SetAll(const std::vector<Var>& Vars, void* block, size_t Addition = 0) // i do not remember why I put the addition here tbh
 {
 	if (!block)
 		return;
 
 	for (auto& var : Vars)
 	{
-		if (var.val != 0)
+		switch (var.GetUsedVariable())
 		{
+		case 0: // val (int)
 			Set(var.val, block, Addition);
 			Addition += sizeof(var.val);
-		}
-		else if (var.ptr)
-		{
+			break;
+		case 1: // str (FString)
+			Set(var.str, block, Addition);
+			Addition += sizeof(var.str);
+			break;
+		case 2: // ptr (void*)
 			Set(var.ptr, block, Addition);
 			Addition += sizeof(var.ptr);
-		}
-		else if (var.str.Data.GetData())
-		{
-			Set(var.str.Data.GetData(), block, Addition);
-			Addition += sizeof(var.ptr);
+			break;
 		}
 	}
 }
@@ -96,14 +108,29 @@ struct Finder
 		void* AdditionMemory = nullptr;
 		std::vector<void*> Mem;
 
-		std::vector<size_t> Sizes;
+		// std::vector<size_t> Sizes;
 		size_t allSizesAdded = 0;
 
 		for (auto& Var : Vars)
 		{
-			auto Size = sizeof(Var);
-			Sizes.push_back(Size);
-			allSizesAdded += Size;
+			int varSize = 0;
+			switch (Var.GetUsedVariable())
+			{
+			case 0: // val (int)
+				varSize = sizeof(Var.val);
+				break;
+			case 1: // str (FString)
+				varSize = sizeof(Var.str);
+				break;
+			case 2: // ptr (void*)
+				varSize = sizeof(Var.ptr);
+				break;
+			default:
+				break;
+			}
+
+			// Sizes.push_back(varSize);
+			allSizesAdded += varSize;
 		}
 
 		auto Memory = malloc(allSizesAdded + Addition);
@@ -141,8 +168,9 @@ struct Finder
 
 			std::cout << Memory << "\n";
 			std::cout << allSizesAdded << '\n';
+			std::cout << "Addition: " << Addition << '\n';
 			std::cout << AdditionMemory << '\n';
-			std::cout << ((UObject*)AdditionMemory)->GetFullName() << '\n';
+			std::cout << "Full Name of Ret: " << ((UObject*)AdditionMemory)->GetFullName() << '\n';
 
 			// free(Memory);
 		}

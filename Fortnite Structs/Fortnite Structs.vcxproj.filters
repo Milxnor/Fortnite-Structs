@@ -35,5 +35,8 @@
     <ClInclude Include="finder.h">
       <Filter>Header Files\UE</Filter>
     </ClInclude>
+    <ClInclude Include="newstructs.h">
+      <Filter>Header Files\UE</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

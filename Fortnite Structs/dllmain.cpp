@@ -11,9 +11,11 @@ DWORD WINAPI CreateConsole(LPVOID)
 {
     static auto Engine = FindObject("FortEngine_");
 
-    std::cout << "Member count: " << GetMembers(Engine).size() << '\n';
+    auto EngineMembers = GetMembers(Engine);
 
-    for (auto& Member : GetMembers(Engine))
+    std::cout << "Member count: " << EngineMembers.size() << '\n';
+
+    for (auto Member : EngineMembers)
 	{
 		std::cout << "Member: " << Member->GetName() << '\n';
 	}

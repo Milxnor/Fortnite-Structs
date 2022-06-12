@@ -184,6 +184,7 @@ struct UObject // https://github.com/EpicGames/UnrealEngine/blob/c3caf7b6bf12ae4
 struct UField : UObject
 {
 	UField* Next;
+
 };
 
 struct FField
@@ -336,7 +337,7 @@ FString(*GetEngineVersion)();
 // TODO: There is this 1.9 function, 48 8D 05 D9 51 22 03. It has the CL and stuff. We may be able to determine the version using the CL.
 // There is also a string for the engine version and fortnite version, I think it's for every version its like "engineversion=". I will look into it when I find time.
 
-bool Setup(/* void* ProcessEventHookAddr */)
+bool Setup(/* void* ProcessEventHookAddr */) // TODO: Remake
 {
 	uint64_t ToStringAddr = 0;
 	uint64_t ProcessEventAddr = 0;

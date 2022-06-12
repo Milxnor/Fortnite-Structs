@@ -11,15 +11,23 @@ DWORD WINAPI CreateConsole(LPVOID)
 {
     static auto Engine = FindObject("FortEngine_");
 
-    auto EngineMembers = GetMembers(Engine);
+    std::vector<FField*> OutProperties;
+
+    auto EngineMembers = GetMembers(Engine, false, false, &OutProperties);
 
     std::cout << "Member count: " << EngineMembers.size() << '\n';
+	std::cout << "Out Properties: " << OutProperties.size() << '\n';
 
     for (auto Member : EngineMembers)
 	{
 		std::cout << "Member: " << Member->GetName() << '\n';
 	}
-    // std::cout << "GameViewport: " << *Engine->Member<UObject*>(_("GameViewport")) << '\n';
+
+    for (auto Property : OutProperties)
+    {
+        std::cout << "Member: " << Property->GetName() << '\n';
+    }
+    std::cout << "GameViewport: " << *Engine->Member<UObject*>(_("GameViewport")) << '\n';
 }
 
 DWORD WINAPI Input(LPVOID)

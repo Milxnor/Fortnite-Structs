@@ -224,7 +224,7 @@ struct UStruct
 	}
 };
 
-auto GetMembers(UObject* Object, bool bOnlyMembers = false, bool bOnlyFunctions = false)
+auto GetMembers(UObject* Object, bool bOnlyMembers = false, bool bOnlyFunctions = false, std::vector<FField*>* OutProperties = nullptr)
 {
 	std::vector<UObject*> Members;
 
@@ -233,19 +233,24 @@ auto GetMembers(UObject* Object, bool bOnlyMembers = false, bool bOnlyFunctions 
 		for (auto Class = (UStruct*)Object->ClassPrivate; Class; Class = (UStruct*)Class->GetSuper())
 		{
 			auto Child = Class->GetChildren();
-			auto Property = Class->GetChildProperties();
-
-			if (Property && (EngineVersion >= 425 && (bOnlyMembers && !bOnlyFunctions) || (!bOnlyMembers && !bOnlyFunctions)))
+			
+			if (OutProperties)
 			{
-				auto Next = Property->Next;
-				
-				if (Next)
-				{					
-					while (Property)
-					{
-						Members.push_back((UObject*)Property);
+				auto Property = Class->GetChildProperties();
 
-						Property = Property->Next;
+				if (Property && (EngineVersion >= 425 && (bOnlyMembers && !bOnlyFunctions) || (!bOnlyMembers && !bOnlyFunctions)))
+				{
+					auto Next = Property->Next;
+
+					if (Next)
+					{
+						while (Property)
+						{
+							// Members.push_back((UObject*)Property);
+							OutProperties->push_back(Property);
+							
+							Property = Property->Next;
+						}
 					}
 				}
 			}
